@@ -1,21 +1,22 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef enum { BYTES = 0, CHARS, LINES, WORDS, ERROR } FLAG_TYPE;
 
-FILE *open_file(const char *filename) {
-  FILE *file = fopen(filename, "r");
+FILE *open_file(const char *filename, const char *mod) {
+  FILE *file = fopen(filename, mod);
   if (file == NULL) {
-    fprintf(stderr, "error: failed to open file\n");
+    perror("error: failed to open file\n");
     return NULL;
   }
   return file;
 }
 
 int get_char_counts(const char *filename) {
-  FILE *file = open_file(filename);
+  FILE *file = open_file(filename, "r");
 
   int c;
   int char_count = 0;
@@ -26,6 +27,26 @@ int get_char_counts(const char *filename) {
   if (feof(file)) {
     fclose(file);
     return char_count;
+  } else {
+    fprintf(stderr, "error: failed to read file\n");
+    fclose(file);
+  }
+
+  return -1;
+}
+
+int get_bytes_counts(const char *filename) {
+  FILE *file = open_file(filename, "rb");
+
+  int byte;
+  int bytes_count = 0;
+
+  while ((byte = fgetc(file)) != EOF)
+    bytes_count++;
+
+  if (feof(file)) {
+    fclose(file);
+    return bytes_count;
   } else {
     fprintf(stderr, "error: failed to read file\n");
     fclose(file);
@@ -89,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     switch (flag_type) {
     case BYTES:
-      assert(false && "TODO: implement bytes count");
+      printf("chars: %d\n", get_bytes_counts(filename));
       break;
     case CHARS:
       printf("chars: %d\n", get_char_counts(filename));
